@@ -7,9 +7,12 @@
 
 DIRNAME=igt-gpu-tools-$( date +%Y%m%d )
 
+REF=${REF:+--reference $REF}
+HEAD=${1:-HEAD}
+
 echo REF ${REF:+--reference $REF}
 echo DIRNAME $DIRNAME
-echo HEAD ${1:-HEAD}
+echo HEAD $HEAD
 
 rm -rf $DIRNAME
 trap 'rm -rf $DIRNAME' EXIT
@@ -20,7 +23,7 @@ git clone ${REF:+--reference $REF} \
 export GIT_DIR=$DIRNAME/.git
 
 sed -i "igt-gpu-tools.spec" \
-	-e "s/%global gitcommit [0-9a-f]\+/%global gitcommit $(git rev-parse HEAD)/" \
+	-e "s/%global gitcommit [0-9a-f]\+/%global gitcommit $(git rev-parse $HEAD)/" \
 	-e "s/%global gitdate [0-9]\+/%global gitdate $(date +%Y%m%d)/"
 
-git archive --format=tar ${1:-HEAD} | bzip2 > $DIRNAME.tar.bz2
+git archive --format=tar $HEAD | bzip2 > $DIRNAME.tar.bz2
