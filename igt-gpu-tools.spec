@@ -87,7 +87,7 @@ gtk-doc generated documentation package for igt-gpu-tools.
         -Dc_link_args="-z lazy" \
         -Dbuild_overlay=disabled \
         -Dwith_libdrm=auto \
-        -Dwith_libunwind=%{with_libunwind} \
+        -Dwith_libunwind=%{with_libunwind}
 %meson_build
 
 %install
