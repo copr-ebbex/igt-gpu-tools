@@ -1,5 +1,5 @@
-%global gitcommit adf9f435a795d692e30cd6eafe26eddf4993c8ff
-%global gitdate 20190522
+%global gitcommit 4108c74c3b15460de25ab989f4e2031594559dfc
+%global gitdate 20190531
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -66,14 +66,14 @@ gtk-doc generated documentation package for igt-gpu-tools.
 
 %build
 %ifnarch s390x
-%global with_libunwind true
+%global with_libunwind enabled
 %else
-%global with_libunwind false
+%global with_libunwind disabled
 %endif
 
 # Some explanations here
-# - We don't build overlay yet (-Dwith_overlay) due to Fedora not shipping
-#   /usr/bin/leg, but we probably don't care about that anyway
+# - We don't build overlay yet due to Fedora not shipping /usr/bin/leg, but we
+#   probably don't care about that anyway
 # - We specify -Db_ndebug=false because upstream has explicitly stated that
 #   anyhing else is officially unsupported
 # - Attempting to resolve all of the symbols within IGT at executable start
@@ -85,15 +85,9 @@ gtk-doc generated documentation package for igt-gpu-tools.
 %meson \
         -Db_ndebug=false \
         -Dc_link_args="-z lazy" \
-        -Dbuild_man=true \
-        -Dbuild_docs=true \
-        -Dbuild_audio=true \
-        -Dbuild_chamelium=true \
-        -Dbuild_runner=true \
-        -Dbuild_tests=true \
+        -Dbuild_overlay=disabled \
         -Dwith_libdrm=auto \
         -Dwith_libunwind=%{with_libunwind} \
-        -Dwith_valgrind=true
 %meson_build
 
 %install
@@ -161,6 +155,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Fri May 31 2019 Lyude Paul <lyude@redhat.com> - 1.23-1.20190531git4108c74
+- New git snapshot
+
 * Wed May 22 2019 Lyude Paul <lyude@redhat.com> - 1.23-1.20190522gitadf9f43
 - New git snapshot
 
