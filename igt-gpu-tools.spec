@@ -75,7 +75,7 @@ gtk-doc generated documentation package for igt-gpu-tools.
 # - We don't build overlay yet due to Fedora not shipping /usr/bin/leg, but we
 #   probably don't care about that anyway
 # - We specify -Db_ndebug=false because upstream has explicitly stated that
-#   anyhing else is officially unsupported
+#   anything else is officially unsupported
 # - Attempting to resolve all of the symbols within IGT at executable start
 #   causes some of igt's symbols to be resolved in the wrong order, resulting in
 #   certain runtime function resolvers (e.g. __attribute__((ifunc))) attempting
