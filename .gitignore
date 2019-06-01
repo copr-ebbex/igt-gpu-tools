@@ -1,2 +1,5 @@
+*.src.rpm
+results_igt-gpu-tools/
+
 /igt-gpu-tools-20190522.tar.bz2
 /igt-gpu-tools-20190531.tar.bz2
