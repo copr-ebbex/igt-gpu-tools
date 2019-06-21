@@ -107,7 +107,7 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 # which makes it impossible to specify a timeout multiplier. For context, the
 # timeout multiplier here is required due to certain tests timing out on koji
 # builders that are under heavy load.
-%__meson test -C %{_vpath_builddir} --num-processes $(nproc) --print-errorlogs --timeout-multiplier 4 --no-rebuild
+%__meson test -C %{_vpath_builddir} --num-processes $(nproc) --print-errorlogs --timeout-multiplier 8 --no-rebuild
 
 %files
 %license COPYING
