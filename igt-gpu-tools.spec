@@ -1,5 +1,5 @@
-%global gitcommit 549e1cdc064c0491a9c4509f42d826ae0e752a07
-%global gitdate 20190712
+%global gitcommit f3b3f93724cdb5142ff090f894b5bc356118c19e
+%global gitdate 20190722
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -85,9 +85,8 @@ gtk-doc generated documentation package for igt-gpu-tools.
 %meson \
         -Db_ndebug=false \
         -Dc_link_args="-z lazy" \
-        -Dbuild_overlay=disabled \
-        -Dwith_libdrm=auto \
-        -Dwith_libunwind=%{with_libunwind}
+        -Doverlay=disabled \
+        -Dlibunwind=%{with_libunwind}
 %meson_build
 
 %install
@@ -160,6 +159,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Mon Jul 22 2019 Lyude Paul <lyude@redhat.com> - 1.23-1.20190722gitf3b3f93
+- New git snapshot
+
 * Fri Jul 12 2019 Lyude Paul <lyude@redhat.com> - 1.23-1.20190712git549e1cd
 - New git snapshot
 
