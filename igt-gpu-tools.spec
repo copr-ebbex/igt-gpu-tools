@@ -23,7 +23,7 @@ Provides:       intel-gpu-tools = %{provobs_version}
 Obsoletes:      xorg-x11-drv-intel-devel < %{provobs_version}
 Obsoletes:      intel-gpu-tools < %{provobs_version}
 
-BuildRequires:  meson
+BuildRequires:  meson >= 0.51.0
 BuildRequires:  gcc
 BuildRequires:  flex bison
 BuildRequires:  pkgconfig(libdrm) >= 2.4.82
@@ -101,12 +101,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 rm %{buildroot}/%{_libdir}/intel_aubdump.so
 
 %check
-# We can't use the default meson_test macro because it makes the annoying
-# mistake of running tests through ninja directly instead of through meson,
-# which makes it impossible to specify a timeout multiplier. For context, the
-# timeout multiplier here is required due to certain tests timing out on koji
-# builders that are under heavy load.
-%__meson test -C %{_vpath_builddir} --num-processes $(nproc) --print-errorlogs --timeout-multiplier 8 --no-rebuild
+# The timeout multiplier here is required due to certain tests timing out on
+# koji builders that are under heavy load.
+%meson_test --timeout-multiplier 8
 
 %files
 %license COPYING
