@@ -1,10 +1,10 @@
-%global gitcommit f43f5fa12ac1b93febfe3eeb9e9985f5f3e2eff0
-%global gitdate 20190811
+%global gitcommit 357dbe1869d88a2f08bcee4eebceff4ee9014424
+%global gitdate 20190821
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
-Version:        1.23
-Release:        2%{?gitrev}%{?dist}
+Version:        1.24
+Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -156,6 +156,10 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Wed Aug 21 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20190821git357dbe1
+- New git snapshot
+- New release version
+
 * Tue Aug 20 2019 Susi Lehtola <jussilehtola@fedoraproject.org> - 1.23-2.20190811gitf43f5fa
 - Rebuilt for GSL 2.6.
 
