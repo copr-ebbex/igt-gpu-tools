@@ -24,6 +24,7 @@ export GIT_DIR=$DIRNAME/.git
 
 sed -i "igt-gpu-tools.spec" \
 	-e "s/%global gitcommit [0-9a-f]\+/%global gitcommit $(git rev-parse $HEAD)/" \
-	-e "s/%global gitdate [0-9]\+/%global gitdate $(date +%Y%m%d)/"
+	-e "s/%global gitdate [0-9]\+/%global gitdate $(date +%Y%m%d)/" \
+	-e "s/^\(Release:\s\+\)[0-9]\+/\11/"
 
 git archive --format=tar $HEAD | bzip2 > $DIRNAME.tar.bz2
