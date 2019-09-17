@@ -1,5 +1,5 @@
-%global gitcommit 3fb0f227d8856008f89a797879e27094745ce97e
-%global gitdate 20190906
+%global gitcommit c78b9959fa4050725b16d55a5e56315884a2753d
+%global gitdate 20190917
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -46,6 +46,7 @@ BuildRequires:  pkgconfig(xmlrpc_util)
 BuildRequires:  pkgconfig(xmlrpc_client)
 BuildRequires:  pkgconfig(json-c)
 BuildRequires:  pkgconfig(libcurl)
+BuildRequires:  pkgconfig(liboping)
 BuildRequires:  kernel-headers
 BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  python3-docutils
@@ -150,12 +151,17 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_bindir}/intel_vbt_decode
 %{_bindir}/intel_watermark
 %{_mandir}/man1/intel_*.1*
+%{_bindir}/amd_hdmi_compliance
 
 %files docs
 %license COPYING
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Tue Sep 17 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20190917gitc78b995
+- Add new liboping dependency
+- New git snapshot
+
 * Fri Sep 06 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20190906git3fb0f22
 - New git snapshot
 
