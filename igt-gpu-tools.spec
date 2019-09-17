@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.24
-Release:        1%{?gitrev}%{?dist}
+Release:        2%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -104,7 +104,7 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %check
 # The timeout multiplier here is required due to certain tests timing out on
 # koji builders that are under heavy load.
-%meson_test --timeout-multiplier 8
+%meson_test --timeout-multiplier 16
 
 %files
 %license COPYING
@@ -158,6 +158,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Tue Sep 17 2019 Lyude Paul <lyude@redhat.com> - 1.24-2.20190917gitc78b995
+- Increase meson_test timeout, again, so that tests don't time out on s390x
+
 * Tue Sep 17 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20190917gitc78b995
 - Add new liboping dependency
 - New git snapshot
