@@ -1,10 +1,10 @@
-%global gitcommit c78b9959fa4050725b16d55a5e56315884a2753d
-%global gitdate 20190917
+%global gitcommit 5a6c68568def840cd720f18fc66f529a89f84675
+%global gitdate 20190927
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
 Version:        1.24
-Release:        2%{?gitrev}%{?dist}
+Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -158,6 +158,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Fri Sep 27 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20190927git5a6c685
+- New git snapshot
+
 * Tue Sep 17 2019 Lyude Paul <lyude@redhat.com> - 1.24-2.20190917gitc78b995
 - Increase meson_test timeout, again, so that tests don't time out on s390x
 
