@@ -1,5 +1,5 @@
-%global gitcommit 6c3bae1455c373c49fe744ea037e33b11e8daf1e
-%global gitdate 20191104
+%global gitcommit 9df50aef49e0da4413609d9866b41b82b725f2a0
+%global gitdate 20191202
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -158,7 +158,7 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
-* Mon Nov 04 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20191104git6c3bae1
+* Mon Dec 02 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20191202git9df50ae
 - New git snapshot
 
 * Fri Nov 01 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20191101gitc8a88b6
