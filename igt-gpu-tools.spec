@@ -1,5 +1,5 @@
-%global gitcommit 9df50aef49e0da4413609d9866b41b82b725f2a0
-%global gitdate 20191202
+%global gitcommit 048f58513d8b8ec6bb307a939f0ac959bc0f0e10
+%global gitdate 20191213
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -150,14 +150,18 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_bindir}/intel_stepping
 %{_bindir}/intel_vbt_decode
 %{_bindir}/intel_watermark
-%{_mandir}/man1/intel_*.1*
 %{_bindir}/amd_hdmi_compliance
+%{_bindir}/lsgpu
+%{_mandir}/man1/intel_*.1*
 
 %files docs
 %license COPYING
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Fri Dec 13 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20191213git048f585
+- New git snapshot
+
 * Mon Dec 02 2019 Lyude Paul <lyude@redhat.com> - 1.24-1.20191202git9df50ae
 - New git snapshot
 
