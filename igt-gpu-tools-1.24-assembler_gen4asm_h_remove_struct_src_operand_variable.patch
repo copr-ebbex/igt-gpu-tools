@@ -1,0 +1,50 @@
+From 6944f6515a9d2b46b2ec7dfd7bdb5153ea819d63 Mon Sep 17 00:00:00 2001
+From: Lyude Paul <lyude@redhat.com>
+Date: Thu, 19 Mar 2020 13:40:39 -0400
+Subject: [PATCH] assembler/gen4asm.h: Remove struct src_operand src_operand
+ variable
+
+Another spot where we fail compilation with -fcommon, due to src_operand
+getting included in multiple translation units without being marked as
+extern:
+
+/usr/bin/ld:
+assembler/1ca89e8@@intel-gen4asm@exe/meson-generated_gram.c.o:assembler/gen4asm.h:119:
+multiple definition of `src_operand';
+assembler/1ca89e8@@intel-gen4asm@exe/meson-generated_lex.c.o:assembler/gen4asm.h:119:
+first defined here
+/usr/bin/ld:
+assembler/1ca89e8@@intel-gen4asm@exe/main.c.o:assembler/gen4asm.h:119:
+multiple definition of `src_operand';
+assembler/1ca89e8@@intel-gen4asm@exe/meson-generated_lex.c.o:assembler/gen4asm.h:119:
+first defined here
+
+However, we never actually refer to this variable - only its type
+definition. So, just remove the declaration entirely.
+
+Changes since v1:
+* Don't make src_operand extern - just remove the variable declaration
+  entirely, we only ever use the typedef - Chris Wilson
+
+Signed-off-by: Lyude Paul <lyude@redhat.com>
+Reviewed-by: Petri Latvala <petri.latvala@intel.com>
+---
+ assembler/gen4asm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/assembler/gen4asm.h b/assembler/gen4asm.h
+index 6b957e28..9537d457 100644
+--- a/assembler/gen4asm.h
++++ b/assembler/gen4asm.h
+@@ -116,7 +116,7 @@ struct src_operand {
+ 	int default_region;
+ 	uint32_t imm32; /* set if src_operand is expressing a branch offset */
+ 	char *reloc_target; /* bspec: branching instructions JIP and UIP are source operands */
+-} src_operand;
++};
+ 
+ typedef struct {
+     enum {
+-- 
+2.24.1
+

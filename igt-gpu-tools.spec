@@ -19,6 +19,10 @@ Source1:        make-git-snapshot.sh
 
 # https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/61ef576ea536d82776bd90af18cb6a590b22f520
 Patch0001:      igt-gpu-tools-1.24-lib_igt_core_make_igt_subtest_jmpbuf_igt_dynamic_jmpbuf_extern.patch
+# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/59aa9e450a90b4dedbe6899fd17c317bbac741c4
+Patch0002:      igt-gpu-tools-1.24-lib_rendercopy_gen_make_cc_viewport_static.patch
+# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/6944f6515a9d2b46b2ec7dfd7bdb5153ea819d63
+Patch0003:      igt-gpu-tools-1.24-assembler_gen4asm_h_remove_struct_src_operand_variable.patch
 
 %global provobs_version 2.99.917-42.20180618
 Provides:       xorg-x11-drv-intel-devel = %{provobs_version}
