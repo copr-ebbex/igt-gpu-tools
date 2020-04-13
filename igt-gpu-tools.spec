@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.24
-Release:        2%{?gitrev}%{?dist}
+Release:        3%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -16,6 +16,9 @@ Source0:        igt-gpu-tools-%{gitdate}.tar.bz2
 Source0:        https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/archive/igt-gpu-tools-%{version}/igt-gpu-tools-igt-gpu-tools-%{version}.tar.bz2
 %endif
 Source1:        make-git-snapshot.sh
+
+# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/61ef576ea536d82776bd90af18cb6a590b22f520
+Patch0001:      igt-gpu-tools-1.24-lib_igt_core_make_igt_subtest_jmpbuf_igt_dynamic_jmpbuf_extern.patch
 
 %global provobs_version 2.99.917-42.20180618
 Provides:       xorg-x11-drv-intel-devel = %{provobs_version}
@@ -159,6 +162,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Mon Apr 13 2020 Björn Esser <besser82@fedoraproject.org> - 1.24-3.20191213git048f585
+- Add patch to fix build with GCC-10
+
 * Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1.24-2.20191213git048f585
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
