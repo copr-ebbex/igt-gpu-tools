@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.24
-Release:        3%{?gitrev}%{?dist}
+Release:        4%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -166,6 +166,9 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Tue Apr 21 2020 Björn Esser <besser82@fedoraproject.org> - 1.24-4.20191213git048f585
+- Rebuild (json-c)
+
 * Mon Apr 13 2020 Björn Esser <besser82@fedoraproject.org> - 1.24-3.20191213git048f585
 - Add patch to fix build with GCC-10
 
