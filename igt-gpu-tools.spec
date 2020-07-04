@@ -30,9 +30,6 @@ BuildRequires:  pkgconfig(libdrm) >= 2.4.82
 BuildRequires:  pkgconfig(pciaccess) >= 0.10
 BuildRequires:  pkgconfig(libkmod)
 BuildRequires:  pkgconfig(libprocps)
-%ifnarch s390x
-BuildRequires:  pkgconfig(libunwind)
-%endif
 BuildRequires:  pkgconfig(libdw)
 BuildRequires:  pkgconfig(pixman-1)
 BuildRequires:  pkgconfig(valgrind)
@@ -50,6 +47,15 @@ BuildRequires:  pkgconfig(liboping)
 BuildRequires:  kernel-headers
 BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  python3-docutils
+
+# libunwind 1.4.0+ supports s390x
+%if 0%{?fedora} < 33 || 0%{?rhel}
+%ifnarch s390x
+BuildRequires:  pkgconfig(libunwind)
+%endif
+%else
+BuildRequires:  pkgconfig(libunwind) >= 1.4.0
+%endif
 
 %description
 igt-gpu-tools (formerly known as intel-gpu-tools) is the standard for writing
@@ -73,10 +79,18 @@ igt-gpu-tools, such as i915-perf.
 %autosetup -c -p1
 
 %build
+%if 0%{?fedora} < 33 || 0%{?rhel}
+
 %ifnarch s390x
 %global with_libunwind enabled
 %else
 %global with_libunwind disabled
+%endif
+
+%else
+
+%global with_libunwind enabled
+
 %endif
 
 # Some explanations here
@@ -173,6 +187,7 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %changelog
 * Sat Jul 04 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200704git75bcaf7
 - New git snapshot
+- Enable libunwind on s390x builds
 
 * Tue Apr 21 2020 Björn Esser <besser82@fedoraproject.org> - 1.24-4.20191213git048f585
 - Rebuild (json-c)
