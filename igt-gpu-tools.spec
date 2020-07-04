@@ -1,10 +1,10 @@
-%global gitcommit 048f58513d8b8ec6bb307a939f0ac959bc0f0e10
-%global gitdate 20191213
+%global gitcommit 75bcaf7a609d184305d5f6ac9da38d9297ed22ef
+%global gitdate 20200704
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
-Version:        1.24
-Release:        4%{?gitrev}%{?dist}
+Version:        1.25
+Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -16,13 +16,6 @@ Source0:        igt-gpu-tools-%{gitdate}.tar.bz2
 Source0:        https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/archive/igt-gpu-tools-%{version}/igt-gpu-tools-igt-gpu-tools-%{version}.tar.bz2
 %endif
 Source1:        make-git-snapshot.sh
-
-# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/61ef576ea536d82776bd90af18cb6a590b22f520
-Patch0001:      igt-gpu-tools-1.24-lib_igt_core_make_igt_subtest_jmpbuf_igt_dynamic_jmpbuf_extern.patch
-# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/59aa9e450a90b4dedbe6899fd17c317bbac741c4
-Patch0002:      igt-gpu-tools-1.24-lib_rendercopy_gen_make_cc_viewport_static.patch
-# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/commit/6944f6515a9d2b46b2ec7dfd7bdb5153ea819d63
-Patch0003:      igt-gpu-tools-1.24-assembler_gen4asm_h_remove_struct_src_operand_variable.patch
 
 %global provobs_version 2.99.917-42.20180618
 Provides:       xorg-x11-drv-intel-devel = %{provobs_version}
@@ -69,6 +62,13 @@ Summary:        Documentation for igt-gpu-tools
 %description docs
 gtk-doc generated documentation package for igt-gpu-tools.
 
+%package devel
+Summary:        Development files for igt-gpu-tools
+
+%description devel
+Development files for compiling against certain tools provided by
+igt-gpu-tools, such as i915-perf.
+
 %prep
 %autosetup -c -p1
 
@@ -106,7 +106,6 @@ rm %{buildroot}/%{_libdir}/pkgconfig/intel-gen4asm.pc
 
 # Remove the unversioned libigt symlinks
 rm %{buildroot}/%{_libdir}/libigt.so
-rm %{buildroot}/%{_libdir}/intel_aubdump.so
 
 %check
 # The timeout multiplier here is required due to certain tests timing out on
@@ -123,13 +122,13 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_bindir}/intel_framebuffer_dump
 %{_bindir}/intel_perf_counters
 %endif
-%{_libdir}/intel_aubdump.so.0
 %{_libdir}/libigt.so.0
+%{_libdir}/libi915_perf.so.0
 %{_libexecdir}/igt-gpu-tools/*
 %{_datadir}/igt-gpu-tools/*
 %{_bindir}/dpcd_reg
 %{_bindir}/igt_*
-%{_bindir}/intel_aubdump
+%{_bindir}/i915-perf-*
 %{_bindir}/intel_audio_dump
 %{_bindir}/intel_backlight
 %{_bindir}/intel_bios_dumper
@@ -161,11 +160,20 @@ rm %{buildroot}/%{_libdir}/intel_aubdump.so
 %{_bindir}/lsgpu
 %{_mandir}/man1/intel_*.1*
 
+%files devel
+%license COPYING
+%{_includedir}/i915-perf/*
+%{_libdir}/pkgconfig/i915-perf.pc
+%{_libdir}/libi915_perf.so
+
 %files docs
 %license COPYING
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sat Jul 04 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200704git75bcaf7
+- New git snapshot
+
 * Tue Apr 21 2020 Björn Esser <besser82@fedoraproject.org> - 1.24-4.20191213git048f585
 - Rebuild (json-c)
 
