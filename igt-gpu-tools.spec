@@ -1,5 +1,5 @@
-%global gitcommit 75bcaf7a609d184305d5f6ac9da38d9297ed22ef
-%global gitdate 20200704
+%global gitcommit 9b964d7359db9799f2b5b905403dda668ae28c87
+%global gitdate 20200719
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -185,6 +185,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sun Jul 19 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200719git9b964d7
+- New git snapshot
+
 * Sat Jul 04 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200704git75bcaf7
 - New git snapshot
 - Enable libunwind on s390x builds
