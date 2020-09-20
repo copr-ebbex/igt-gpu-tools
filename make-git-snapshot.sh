@@ -28,3 +28,5 @@ sed -i "igt-gpu-tools.spec" \
 	-e "s/^\(Release:\s\+\)[0-9]\+/\11/"
 
 git archive --format=tar $HEAD | bzip2 > $DIRNAME.tar.bz2
+
+# vim: tw=100 :
