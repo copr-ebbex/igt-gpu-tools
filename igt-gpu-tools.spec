@@ -1,5 +1,5 @@
-%global gitcommit c240b5c00d58860e376b012cc3c883c17ae63f37
-%global gitdate 20200903
+%global gitcommit 0ec962017c8131de14e0cb038f7f76b1f17ed637
+%global gitdate 20200920
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -137,7 +137,7 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_bindir}/intel_perf_counters
 %endif
 %{_libdir}/libigt.so.0
-%{_libdir}/libi915_perf.so.0
+%{_libdir}/libi915_perf.so.*
 %{_libexecdir}/igt-gpu-tools/*
 %{_datadir}/igt-gpu-tools/*
 %{_bindir}/dpcd_reg
@@ -171,6 +171,7 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_bindir}/intel_vbt_decode
 %{_bindir}/intel_watermark
 %{_bindir}/amd_hdmi_compliance
+%{_bindir}/msm_dp_compliance
 %{_bindir}/lsgpu
 %{_mandir}/man1/intel_*.1*
 
@@ -185,6 +186,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sun Sep 20 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200920git0ec9620
+- New git snapshot
+
 * Thu Sep 03 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200903gitc240b5c
 - New git snapshot
 
