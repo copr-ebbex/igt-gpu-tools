@@ -1,5 +1,5 @@
-%global gitcommit ebc9ca51848b368170d3f76acce0c23bff84581f
-%global gitdate 20200926
+%global gitcommit d5f40f0191690f686006c5e567eeab07fc6533dd
+%global gitdate 20201012
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -186,6 +186,10 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Mon Oct 12 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20201012gitd5f40f0
+- New git snapshot
+- Also fixes potential crash in intel_gpu_top when no devices are found
+
 * Sat Sep 26 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20200926gitebc9ca5
 - New git snapshot
 
