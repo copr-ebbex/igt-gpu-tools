@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.25
-Release:        1%{?gitrev}%{?dist}
+Release:        2%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -92,6 +92,10 @@ igt-gpu-tools, such as i915-perf.
 %global with_libunwind enabled
 
 %endif
+
+# gcc-11 issues a false positive for accesses to hdmi_vsdb in
+# cea_vsdb_get_hdmi_default
+CFLAGS="%{build_cflags} -Wno-array-bounds"
 
 # Some explanations here
 # - We don't build overlay yet due to Fedora not shipping /usr/bin/leg, but we
@@ -186,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Thu Oct 15 2020 Jeff Law <law@redhat.com> - 1.25-2.20201012gitd5f40f0
+- Work around false positive diagnostic with gcc-11
+
 * Mon Oct 12 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20201012gitd5f40f0
 - New git snapshot
 - Also fixes potential crash in intel_gpu_top when no devices are found
