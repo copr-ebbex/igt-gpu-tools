@@ -1,10 +1,10 @@
-%global gitcommit d5f40f0191690f686006c5e567eeab07fc6533dd
-%global gitdate 20201012
+%global gitcommit 7fd7e3fb8b42eb4e62a4575f6edc5a048e5bec3d
+%global gitdate 20201026
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
 Version:        1.25
-Release:        2%{?gitrev}%{?dist}
+Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -190,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Mon Oct 26 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20201026git7fd7e3f
+- New git snapshot
+
 * Thu Oct 15 2020 Jeff Law <law@redhat.com> - 1.25-2.20201012gitd5f40f0
 - Work around false positive diagnostic with gcc-11
 
