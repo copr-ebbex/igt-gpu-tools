@@ -1,5 +1,5 @@
-%global gitcommit 7fd7e3fb8b42eb4e62a4575f6edc5a048e5bec3d
-%global gitdate 20201026
+%global gitcommit 80435e0cacc2b6cdf0df2aa798f5a09704c1bea6
+%global gitdate 20201108
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -190,6 +190,10 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sun Nov  8 13:16:16 EST 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20201108git80435e0
+- New git snapshot
+- Fixes broken automatic device selection in intel_gpu_top (#1893536)
+
 * Mon Oct 26 2020 Lyude Paul <lyude@redhat.com> - 1.25-1.20201026git7fd7e3f
 - New git snapshot
 
