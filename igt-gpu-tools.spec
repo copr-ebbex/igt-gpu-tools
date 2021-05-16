@@ -1,9 +1,9 @@
-%global gitcommit d3b7f74ce5df6fdea03e490b7c64f0c6bfe76f03
-%global gitdate 20210411
+%global gitcommit 5c5734d8ee1afac871b69c4554ff14e9b56100e4
+%global gitdate 20210516
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
-Version:        1.25
+Version:        1.26
 Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
@@ -190,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sun May 16 2021 Lyude Paul <lyude@redhat.com> - 1.26-1.20210516git5c5734d
+- New git snapshot
+
 * Sun Apr 11 2021 Lyude Paul <lyude@redhat.com> - 1.25-1.20210411gitd3b7f74
 - New git snapshot
 
