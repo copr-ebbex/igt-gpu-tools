@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.26
-Release:        1%{?gitrev}%{?dist}
+Release:        2%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -190,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sat Jul 10 2021 Björn Esser <besser82@fedoraproject.org> - 1.26-2.20210705gitb24e594
+- Rebuild for versioned symbols in json-c
+
 * Mon Jul 05 2021 Lyude Paul <lyude@redhat.com> - 1.26-1.20210705gitb24e594
 - New git snapshot
 
