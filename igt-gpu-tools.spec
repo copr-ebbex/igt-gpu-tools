@@ -1,10 +1,10 @@
-%global gitcommit a91b7955265ccb52aeb27c911f81965279c73ebe
-%global gitdate 20210715
+%global gitcommit 34ff2cf2bc352dce691593db803389fe0eb2be03
+%global gitdate 20210723
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
 Version:        1.26
-Release:        2%{?gitrev}%{?dist}
+Release:        1%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -190,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Fri Jul 23 2021 Lyude Paul <lyude@redhat.com> - 1.26-1.20210723git34ff2cf
+- New git snapshot
+
 * Thu Jul 22 2021 Fedora Release Engineering <releng@fedoraproject.org> - 1.26-2.20210715gita91b795
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
 
