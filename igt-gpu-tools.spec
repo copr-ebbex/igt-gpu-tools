@@ -1,5 +1,5 @@
-%global gitcommit 34ff2cf2bc352dce691593db803389fe0eb2be03
-%global gitdate 20210723
+%global gitcommit 6135b9cc319ed965e3aafb5b2ae2abf4762a06b2
+%global gitdate 20210731
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -190,6 +190,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Sun Aug 01 2021 Lyude Paul <lyude@redhat.com> - 1.26-1.20210731git6135b9c
+- New git snapshot
+
 * Fri Jul 23 2021 Lyude Paul <lyude@redhat.com> - 1.26-1.20210723git34ff2cf
 - New git snapshot
 
