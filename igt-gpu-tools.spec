@@ -49,7 +49,7 @@ BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  python3-docutils
 
 # libunwind 1.4.0+ supports s390x
-%if 0%{?fedora} < 33 || 0%{?rhel}
+%if 0%{?rhel}
 %ifnarch s390x
 BuildRequires:  pkgconfig(libunwind)
 %endif
