@@ -79,7 +79,7 @@ igt-gpu-tools, such as i915-perf.
 %autosetup -c -p1
 
 %build
-%if 0%{?fedora} < 33 || 0%{?rhel}
+%if 0%{?rhel}
 
 %ifnarch s390x
 %global with_libunwind enabled
