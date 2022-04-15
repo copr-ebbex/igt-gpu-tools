@@ -1,5 +1,5 @@
-%global gitcommit 37ec3b8ffd2c36e5a4c9d2c0d22577920212dc42
-%global gitdate 20220328
+%global gitcommit 205a47d8f70e659df620573ce409d228c5762d11
+%global gitdate 20220415
 %global gitrev .%{gitdate}git%(c=%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
@@ -144,6 +144,11 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_libdir}/libi915_perf.so.*
 %{_libexecdir}/igt-gpu-tools/*
 %{_datadir}/igt-gpu-tools/*
+%{_bindir}/code_cov_capture
+%{_bindir}/code_cov_gather_on_build
+%{_bindir}/code_cov_gather_on_test
+%{_bindir}/code_cov_gen_report
+%{_bindir}/code_cov_parse_info
 %{_bindir}/dpcd_reg
 %{_bindir}/igt_*
 %{_bindir}/i915-perf-*
@@ -190,6 +195,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Fri Apr 15 2022 Lyude Paul <lyude@redhat.com> - 1.26-1.20220415git205a47d
+- New git snapshot
+
 * Mon Mar 28 2022 Lyude Paul <lyude@redhat.com> - 1.26-1.20220328git37ec3b8
 - New git snapshot
 
