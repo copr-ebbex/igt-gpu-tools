@@ -4,7 +4,7 @@
 
 Name:           igt-gpu-tools
 Version:        1.27.1
-Release:        0.4%{?gitrev}%{?dist}
+Release:        0.5%{?gitrev}%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 License:        MIT
@@ -200,6 +200,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Thu Jul 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1.27.1-0.5.20230215git45da871
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
+
 * Wed Jan 24 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1.27.1-0.4.20230215git45da871
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
 
