@@ -176,6 +176,7 @@ rm %{buildroot}/%{_libdir}/libigt.so
 
 %files
 %license COPYING
+%{_bindir}/intel_hdcp
 %{_bindir}/intel-gen4asm
 %{_bindir}/intel-gen4disasm
 %{_libdir}/libigt.so.0
