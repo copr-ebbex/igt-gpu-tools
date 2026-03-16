@@ -125,6 +125,12 @@ igt-gpu-tools, such as i915-perf.
 
 %prep
 %autosetup -p1
+# Panthor lacks big-endian support and has no Meson toggle.
+# Strip it from the build files entirely for s390x and ppc64:
+%ifarch s390x ppc64
+sed -i -e "/panthor/d" lib/meson.build
+sed -i -e "/panthor/d" tests/meson.build
+%endif
 
 %build
 %if 0%{?rhel}
