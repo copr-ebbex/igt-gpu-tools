@@ -65,30 +65,31 @@ Provides:       intel-gpu-tools = %{provobs_version}
 Obsoletes:      xorg-x11-drv-intel-devel < %{provobs_version}
 Obsoletes:      intel-gpu-tools < %{provobs_version}
 
-BuildRequires:  meson >= 0.51.0
+BuildRequires:  bison
+BuildRequires:  flex
 BuildRequires:  gcc
-BuildRequires:  flex bison
-BuildRequires:  pkgconfig(libdrm) >= 2.4.82
-BuildRequires:  pkgconfig(pciaccess) >= 0.10
-BuildRequires:  pkgconfig(libkmod)
-BuildRequires:  pkgconfig(libproc2)
-BuildRequires:  pkgconfig(libdw)
-BuildRequires:  pkgconfig(pixman-1)
-BuildRequires:  pkgconfig(valgrind)
+BuildRequires:  kernel-headers
+BuildRequires:  meson >= 0.51.0
+BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(cairo) > 1.12.0
-BuildRequires:  pkgconfig(libudev)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gsl)
-BuildRequires:  pkgconfig(alsa)
-BuildRequires:  pkgconfig(xv)
-BuildRequires:  pkgconfig(xmlrpc)
-BuildRequires:  pkgconfig(xmlrpc_util)
-BuildRequires:  pkgconfig(xmlrpc_client)
+BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  pkgconfig(json-c)
 BuildRequires:  pkgconfig(libcurl)
+BuildRequires:  pkgconfig(libdrm) >= 2.4.82
+BuildRequires:  pkgconfig(libdw)
+BuildRequires:  pkgconfig(libkmod)
 BuildRequires:  pkgconfig(liboping)
-BuildRequires:  kernel-headers
-BuildRequires:  pkgconfig(gtk-doc)
+BuildRequires:  pkgconfig(libproc2)
+BuildRequires:  pkgconfig(libudev)
+BuildRequires:  pkgconfig(pciaccess) >= 0.10
+BuildRequires:  pkgconfig(pixman-1)
+BuildRequires:  pkgconfig(valgrind)
+BuildRequires:  pkgconfig(xmlrpc)
+BuildRequires:  pkgconfig(xmlrpc_client)
+BuildRequires:  pkgconfig(xmlrpc_util)
+BuildRequires:  pkgconfig(xv)
 BuildRequires:  python3-docutils
 
 # libunwind 1.4.0+ supports s390x
