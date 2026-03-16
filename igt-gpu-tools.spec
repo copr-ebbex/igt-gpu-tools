@@ -3,8 +3,8 @@
 #%%global gitrev .%%{gitdate}git%%(c=%%{gitcommit}; echo ${c:0:7})
 
 Name:           igt-gpu-tools
-Version:        2.2
-Release:        2%{?dist}
+Version:        2.3
+Release:        1%{?dist}
 Summary:        Test suite and tools for DRM drivers
 
 # MIT AND ISC:
@@ -56,7 +56,7 @@ URL:            https://gitlab.freedesktop.org/drm/igt-gpu-tools
 %if 0%{?gitdate}
 Source0:        igt-gpu-tools-%{gitdate}.tar.bz2
 %else
-Source0:        https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/archive/v%{version}/igt-gpu-tools-v%{version}.tar.bz2
+Source0:        https://www.x.org/archive//individual/app/%{name}-%{version}.tar.xz
 %endif
 
 %global provobs_version 2.99.917-42.20180618
@@ -119,7 +119,7 @@ Development files for compiling against certain tools provided by
 igt-gpu-tools, such as i915-perf.
 
 %prep
-%autosetup -n igt-gpu-tools-v%{version} -p1
+%autosetup -p1
 
 %build
 %if 0%{?rhel}
@@ -252,6 +252,9 @@ rm %{buildroot}/%{_libdir}/libigt.so
 %{_datadir}/gtk-doc/html/igt-gpu-tools/*
 
 %changelog
+* Mon Mar 16 2026 Filipe Rosset <rosset.filipe@gmail.com> - 2.3-1
+- update to 2.3
+
 * Fri Jan 16 2026 Fedora Release Engineering <releng@fedoraproject.org> - 2.2-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_44_Mass_Rebuild
 

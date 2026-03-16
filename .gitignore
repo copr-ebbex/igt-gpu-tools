@@ -1,3 +1,5 @@
 *.src.rpm
 results_igt-gpu-tools/
 /igt-gpu-tools-*.tar.bz2
+/igt-gpu-tools-2.3.tar.xz
+/igt-gpu-tools-2.3.tar.xz.sig
