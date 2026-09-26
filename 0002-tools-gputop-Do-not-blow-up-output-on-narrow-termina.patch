@@ -1,0 +1,92 @@
+From b3f98d67b433f18cec1ed556af73b75278d35a6e Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:28 +0200
+Subject: [PATCH i-g-t 02/12] tools/gputop: Do not blow up output on narrow
+ terminals
+
+n_spaces() takes an unsigned count, but print_client_header() passes it
+con_w - ret, which goes negative as soon as the header line is wider
+than the terminal. That is easy to hit since commit ae24ee2add9b
+("tools/gputop: Add GPU frequencies to the client headers"): on an 80
+column terminal a couple of GTs is enough, and on a narrower one it
+happens every time. The negative value wraps to about four billion
+spaces per header and the tool becomes unusable.
+
+Make n_spaces() take a signed count so negative values print nothing.
+Compute the per-engine column width in signed arithmetic, as dividing
+by the unsigned num_engines turned a negative numerator into a huge
+positive width, and clamp it to zero. Finally clamp the "%-*s" field
+widths since a negative width argument is interpreted as left
+justification with the absolute value, which also overflows the line.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index 4150309d6..5156b1019 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -26,6 +26,7 @@
+ #include <sys/sysmacros.h>
+ #include <stdbool.h>
+ 
++#include "igt_aux.h"
+ #include "igt_core.h"
+ #include "igt_drm_clients.h"
+ #include "igt_drm_fdinfo.h"
+@@ -49,9 +50,9 @@ static const char *bars[] = { " ", "▏", "▎", "▍", "▌", "▋", "▊", "
+ #define ANSI_HEADER "\033[7m"
+ #define ANSI_RESET "\033[0m"
+ 
+-static void n_spaces(const unsigned int n)
++static void n_spaces(const int n)
+ {
+-	unsigned int i;
++	int i;
+ 
+ 	for (i = 0; i < n; i++)
+ 		putchar(' ');
+@@ -298,7 +299,9 @@ print_client_header(struct igt_drm_client *c, int lines, int con_w, int con_h,
+ 
+ 		*engine_w = width =
+ 			(con_w - len - c->clients->max_name_len - 1) /
+-			c->engines->num_engines;
++			(int)c->engines->num_engines;
++		if (width < 0)
++			*engine_w = width = 0;
+ 
+ 		for (i = 0; i <= c->engines->max_engine_id; i++) {
+ 			const char *name = c->engines->names[i];
+@@ -319,7 +322,7 @@ print_client_header(struct igt_drm_client *c, int lines, int con_w, int con_h,
+ 		}
+ 	}
+ 
+-	printf(" %-*s" ANSI_RESET "\n", con_w - len - 1, "NAME");
++	printf(" %-*s" ANSI_RESET "\n", max(con_w - len - 1, 0), "NAME");
+ 
+ 	return lines;
+ }
+@@ -460,7 +463,7 @@ print_client(struct igt_drm_client *c, struct igt_drm_client **prevc,
+ 		len += *engine_w;
+ 	}
+ 
+-	printf(" %-*s\n", con_w - len - 1, c->print_name);
++	printf(" %-*s\n", max(con_w - len - 1, 0), c->print_name);
+ 
+ 	return lines;
+ }
+@@ -659,7 +662,7 @@ int main(int argc, char **argv)
+ 			const char *msg = " (No GPU clients yet. Start workload to see stats)";
+ 
+ 			printf(ANSI_HEADER "%-*s" ANSI_RESET "\n",
+-			       (int)(con_w - strlen(msg) - 1), msg);
++			       max(con_w - (int)strlen(msg) - 1, 0), msg);
+ 		}
+ 
+ 		igt_for_each_drm_client(clients, c, i) {
+-- 
+2.55.0
+

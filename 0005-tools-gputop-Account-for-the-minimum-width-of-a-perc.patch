@@ -1,0 +1,89 @@
+From 049a0b677870da06dad0a80e3c3faa1303e7eb76 Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:29 +0200
+Subject: [PATCH i-g-t 05/12] tools/gputop: Account for the minimum width of a
+ percentage bar
+
+print_percentage_bar() always prints at least "|100.0% |", nine
+columns, no matter how small the requested width is. The header
+however lays out the engine name columns using the requested width,
+and print_client() advances its column counter by the requested width
+too. Whenever the per-engine width comes out below nine, which happens
+on an 80 column terminal as soon as there are five engines, the engine
+names drift out of step with the bars and the NAME column of every
+client row is over-padded and wraps.
+
+Clamp the per-engine column width to the minimum width of a bar so the
+header uses the same geometry as the rows, and have
+print_percentage_bar() return the number of columns it printed so the
+rows account for it exactly.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index a8f90e3fd..8b3bb67a7 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -58,9 +58,13 @@ static void n_spaces(const int n)
+ 		putchar(' ');
+ }
+ 
+-static void print_percentage_bar(double percent, int max_len)
++/* Narrowest possible percentage bar, "|100.0% |" */
++#define PERCENTAGE_BAR_MIN_W 9
++
++/* Returns the number of columns printed */
++static int print_percentage_bar(double percent, int max_len)
+ {
+-	int bar_len, i, len = max_len - 1;
++	int bar_len, i, cols, len = max_len - 1;
+ 	const int w = 8;
+ 
+ 	len -= printf("|%5.1f%% ", percent);
+@@ -69,6 +73,8 @@ static void print_percentage_bar(double percent, int max_len)
+ 	if (len < 0)
+ 		len = 0;
+ 
++	cols = len + PERCENTAGE_BAR_MIN_W;
++
+ 	bar_len = ceil(w * percent * len / 100.0);
+ 	if (bar_len > w * len)
+ 		bar_len = w * len;
+@@ -82,6 +88,8 @@ static void print_percentage_bar(double percent, int max_len)
+ 	n_spaces(len);
+ 
+ 	putchar('|');
++
++	return cols;
+ }
+ 
+ /* Get the correct sysfs prefix based on DRM minor number */
+@@ -302,8 +310,9 @@ print_client_header(struct igt_drm_client *c, int lines, int con_w, int con_h,
+ 		*engine_w = width =
+ 			(con_w - len - c->clients->max_name_len - 1) /
+ 			(int)c->engines->num_engines;
+-		if (width < 0)
+-			*engine_w = width = 0;
++		/* The bars below have a minimum width, keep the header in step. */
++		if (width < PERCENTAGE_BAR_MIN_W)
++			*engine_w = width = PERCENTAGE_BAR_MIN_W;
+ 
+ 		for (i = 0; i <= c->engines->max_engine_id; i++) {
+ 			const char *name = c->engines->names[i];
+@@ -469,8 +478,7 @@ print_client(struct igt_drm_client *c, struct igt_drm_client **prevc,
+ 		if (pct > 100.0)
+ 			pct = 100.0;
+ 
+-		print_percentage_bar(pct, *engine_w);
+-		len += *engine_w;
++		len += print_percentage_bar(pct, *engine_w);
+ 	}
+ 
+ 	printf(" %-*s\n", max(con_w - len - 1, 0), c->print_name);
+-- 
+2.55.0
+

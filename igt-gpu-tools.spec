@@ -7,7 +7,7 @@
 
 Name:           igt-gpu-tools
 Version:        2.5
-Release:        %autorelease
+Release:        %autorelease -e 1
 Summary:        Test suite and tools for DRM drivers
 
 # MIT AND ISC:
@@ -61,6 +61,20 @@ Source0:        igt-gpu-tools-%{gitdate}.tar.bz2
 %else
 Source0:        https://www.x.org/archive/individual/app/%{name}-%{version}.tar.xz
 %endif
+
+# gputop fixes, from ~/src/igt-gpu-tools (upstream master + our commits)
+Patch0001:      0001-tools-gputop-Guard-against-a-zero-total-cycles-delta.patch
+Patch0002:      0002-tools-gputop-Do-not-blow-up-output-on-narrow-termina.patch
+Patch0003:      0003-tools-gputop-Reset-video-attributes-when-the-header-.patch
+Patch0004:      0004-tools-gputop-Fix-NULL-dereferences-on-sparse-engine-.patch
+Patch0005:      0005-tools-gputop-Account-for-the-minimum-width-of-a-perc.patch
+Patch0006:      0006-tools-gputop-Truncate-engine-names-which-do-not-fit-.patch
+Patch0007:      0007-tools-gputop-Sort-by-busy-cycles-when-engine-time-is.patch
+Patch0008:      0008-tools-gputop-Show-i915-frequencies-for-render-node-c.patch
+Patch0009:      0009-tools-gputop-Detect-the-bound-driver-once-per-header.patch
+Patch0010:      0010-tools-gputop-Access-sysfs-through-directory-fds.patch
+Patch0011:      0011-tools-gputop-Do-not-stop-at-the-first-missing-GT-id.patch
+Patch0012:      0012-tools-gputop-Find-Xe-GTs-on-all-tiles.patch
 
 %global provobs_version 2.99.917-42.20180618
 Provides:       xorg-x11-drv-intel-devel = %{provobs_version}

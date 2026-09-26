@@ -1,0 +1,50 @@
+From 3c1e330aa5a41c18fca64cdf44fe41d60150e59e Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:27 +0200
+Subject: [PATCH i-g-t 01/12] tools/gputop: Guard against a zero total cycles
+ delta
+
+For drivers reporting drm-cycles/drm-total-cycles the utilisation is
+computed as delta_cycles / delta_total_cycles. If the total cycles
+counter did not advance between two scans that is 0 / 0, which is NaN.
+NaN compares false against the 100% clamp and is then passed to
+print_percentage_bar(), where ceil() of it is converted to an int. On
+x86 that yields INT_MIN, which is non-zero and so ends up as an index
+into the bars[] array, an out of bounds read and most likely a crash.
+
+Treat a zero total cycles delta as zero utilisation. This also turns
+the non-zero-over-zero case, which was clamped to 100%, into 0%, as a
+busy count without any elapsed time is not meaningful either.
+
+The xe driver derives total cycles from a GT timestamp which always
+advances, so this is hard to hit today, but it is cheap to be safe.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index 0ed5af456..4150309d6 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -439,8 +439,13 @@ print_client(struct igt_drm_client *c, struct igt_drm_client **prevc,
+ 				c->engines->capacity[i];
+ 			break;
+ 		case UTILIZATION_TYPE_TOTAL_CYCLES:
+-			pct = (double)c->utilization[i].delta_cycles / c->utilization[i].delta_total_cycles * 100 /
+-				c->engines->capacity[i];
++			/* Avoid NaN when the counter did not advance. */
++			if (!c->utilization[i].delta_total_cycles)
++				pct = 0.0;
++			else
++				pct = (double)c->utilization[i].delta_cycles /
++					c->utilization[i].delta_total_cycles * 100 /
++					c->engines->capacity[i];
+ 			break;
+ 		}
+ 
+-- 
+2.55.0
+
