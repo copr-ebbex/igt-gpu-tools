@@ -1,0 +1,40 @@
+From 0c7d5526d08e756e33f2650b00d68d7ad01e6607 Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:28 +0200
+Subject: [PATCH i-g-t 03/12] tools/gputop: Reset video attributes when the
+ header is cut short
+
+print_client_header() enables inverse video before printing the first
+header line and only resets it at the end of the second line. When the
+first line is the last one which fits on the terminal it returns early
+and leaves the attribute enabled, so the clear screen sequence of the
+next refresh paints the terminal in inverse video on terminals which
+erase using the current attributes.
+
+Reset the attribute on that early return as well.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index 5156b1019..cdd0b93aa 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -283,8 +283,10 @@ print_client_header(struct igt_drm_client *c, int lines, int con_w, int con_h,
+ 
+ 	n_spaces(con_w - ret);
+ 
+-	if (lines++ >= con_h)
++	if (lines++ >= con_h) {
++		printf(ANSI_RESET);
+ 		return lines;
++	}
+ 
+ 	putchar('\n');
+ 	if (c->regions->num_regions)
+-- 
+2.55.0
+

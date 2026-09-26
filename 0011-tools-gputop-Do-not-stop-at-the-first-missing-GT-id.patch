@@ -1,0 +1,51 @@
+From 92c66af4c7552be25029cfa79e4eebe6c14ba178 Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:31 +0200
+Subject: [PATCH i-g-t 11/12] tools/gputop: Do not stop at the first missing GT
+ id
+
+The frequency loop stops probing as soon as a GT id is not found,
+assuming ids are contiguous. That does not hold for xe: the ids are
+computed per tile as tile_id * max_gt_per_tile, plus one for the media
+GT, and the driver's configfs interface allows disabling the primary
+or the media GT of a device. Disable the primary GT and the loop gives
+up at gt0 even though gt1 exists, so the header shows no frequency at
+all.
+
+Probe every id up to MAX_GTS instead of breaking on the first miss. The
+cost is at most eight openat() calls per header.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index cf80c622f..c65d8b76d 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -209,7 +209,10 @@ static char *get_intel_frequencies(int card_fd,
+ 	int gt;
+ 	bool first = true;
+ 
+-	/* Read frequencies for each GT, assuming they are numbered sequentially */
++	/*
++	 * Probe every possible GT id. They need not be contiguous: xe computes
++	 * them per tile and GTs can be disabled through configfs.
++	 */
+ 	for (gt = 0; gt < MAX_GTS; gt++) {
+ 		unsigned int cur_freq = 0, act_freq = 0;
+ 		bool has_cur, has_act;
+@@ -217,7 +220,7 @@ static char *get_intel_frequencies(int card_fd,
+ 
+ 		gt_fd = open_gt_sysfs_dir(card_fd, driver_type, gt);
+ 		if (gt_fd < 0)
+-			break;
++			continue;
+ 
+ 		if (driver_type == INTEL_DRIVER_XE) {
+ 			has_cur = read_freq_value(gt_fd, "freq0/cur_freq", &cur_freq);
+-- 
+2.55.0
+

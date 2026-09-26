@@ -1,0 +1,92 @@
+From 30e031e1ddabc7330ce20827786c5a8da9343bea Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:30 +0200
+Subject: [PATCH i-g-t 08/12] tools/gputop: Show i915 frequencies for render
+ node clients
+
+The i915 GT sysfs tree lives under the card node, /sys/class/drm/cardN/gt,
+and is not reachable from the render node directory. Since practically
+all clients open render nodes, their DRM minor is 128 or above and the
+frequency lookup silently failed, so i915 clients never got frequencies
+in their header. Xe was unaffected because its GT directories hang off
+the PCI device, which both nodes link to.
+
+Map a render node minor back to its card by looking for the card*
+entry in <render node>/device/drm/ before touching sysfs, so all the
+paths are built from the card minor. get_sysfs_drm_path() consequently
+only ever sees card minors now.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 46 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index 3d9f87b8c..74415fb80 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -98,6 +98,43 @@ static const char *get_sysfs_drm_path(unsigned int drm_minor)
+ 	return drm_minor >= 128 ? "/sys/class/drm/renderD" : "/sys/class/drm/card";
+ }
+ 
++/*
++ * Map a DRM minor to the minor of its card (primary) node.
++ *
++ * Clients mostly open render nodes (minor >= 128), but driver specific sysfs
++ * such as the i915 gt/ directory hangs off the card node, so look the card up
++ * via <render node>/device/drm/card*.
++ */
++static bool get_card_minor(unsigned int drm_minor, unsigned int *card_minor)
++{
++	char path[64];
++	struct dirent *de;
++	DIR *dir;
++	bool found = false;
++
++	if (drm_minor < 128) {
++		*card_minor = drm_minor;
++		return true;
++	}
++
++	snprintf(path, sizeof(path), "/sys/class/drm/renderD%u/device/drm",
++		 drm_minor);
++	dir = opendir(path);
++	if (!dir)
++		return false;
++
++	while ((de = readdir(dir))) {
++		if (sscanf(de->d_name, "card%u", card_minor) == 1) {
++			found = true;
++			break;
++		}
++	}
++
++	closedir(dir);
++
++	return found;
++}
++
+ /* Detect if driver is bound to the device */
+ static bool is_bound(unsigned int drm_minor, const char *driver_name)
+ {
+@@ -260,9 +297,14 @@ static char *get_intel_frequencies(unsigned int drm_minor)
+ /* Generic wrapper for frequency reading - dispatches to vendor-specific implementations */
+ static char *get_frequencies(unsigned int drm_minor)
+ {
++	unsigned int card_minor;
++
++	if (!get_card_minor(drm_minor, &card_minor))
++		return NULL;
++
+ 	/* Check for Intel devices (i915/Xe) */
+-	if (is_intel_device(drm_minor))
+-		return get_intel_frequencies(drm_minor);
++	if (is_intel_device(card_minor))
++		return get_intel_frequencies(card_minor);
+ 
+ 	return NULL;
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,289 @@
+From a4451fdbf69a57143e1b56939a33a96f3871ef53 Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:31 +0200
+Subject: [PATCH i-g-t 10/12] tools/gputop: Access sysfs through directory fds
+
+The frequency reporting code builds a full sysfs path string for every
+file it touches, repeating the prefix and card minor in seven places,
+which makes the code hard to follow and easy to get wrong.
+
+Open the card's sysfs directory once and use openat()/readlinkat()
+relative to it, with one helper to open a GT directory. Reading a
+frequency then just needs the file name relative to the GT. The card
+lookup for render nodes moves into open_card_sysfs_dir(), which
+replaces get_card_minor() and get_sysfs_drm_path(), and counting the
+GTs up front in get_num_gts() is folded into the read loop, which
+already stops at the first GT which does not exist.
+
+No functional change intended: the same sysfs entries are consulted in
+the same order and every failure still results in no frequency being
+shown.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 168 +++++++++++++++++++++----------------------------
+ 1 file changed, 72 insertions(+), 96 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index 0fa51b56c..cf80c622f 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -45,6 +45,9 @@ enum intel_driver_type {
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+ 
++/* Upper bound for probing GT sysfs directories */
++#define MAX_GTS 8
++
+ static const char *bars[] = { " ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█" };
+ 
+ #define ANSI_HEADER "\033[7m"
+@@ -92,61 +95,54 @@ static int print_percentage_bar(double percent, int max_len)
+ 	return cols;
+ }
+ 
+-/* Get the correct sysfs prefix based on DRM minor number */
+-static const char *get_sysfs_drm_path(unsigned int drm_minor)
+-{
+-	return drm_minor >= 128 ? "/sys/class/drm/renderD" : "/sys/class/drm/card";
+-}
+-
+ /*
+- * Map a DRM minor to the minor of its card (primary) node.
++ * Open the sysfs directory of the card (primary) node for a DRM minor.
+  *
+  * Clients mostly open render nodes (minor >= 128), but driver specific sysfs
+  * such as the i915 gt/ directory hangs off the card node, so look the card up
+  * via <render node>/device/drm/card*.
+  */
+-static bool get_card_minor(unsigned int drm_minor, unsigned int *card_minor)
++static int open_card_sysfs_dir(unsigned int drm_minor)
+ {
+ 	char path[64];
+ 	struct dirent *de;
+ 	DIR *dir;
+-	bool found = false;
++	unsigned int card_minor;
++	int fd = -1;
+ 
+ 	if (drm_minor < 128) {
+-		*card_minor = drm_minor;
+-		return true;
++		snprintf(path, sizeof(path), "/sys/class/drm/card%u", drm_minor);
++		return open(path, O_RDONLY | O_DIRECTORY);
+ 	}
+ 
+ 	snprintf(path, sizeof(path), "/sys/class/drm/renderD%u/device/drm",
+ 		 drm_minor);
+ 	dir = opendir(path);
+ 	if (!dir)
+-		return false;
++		return -1;
+ 
+ 	while ((de = readdir(dir))) {
+-		if (sscanf(de->d_name, "card%u", card_minor) == 1) {
+-			found = true;
++		if (sscanf(de->d_name, "card%u", &card_minor) == 1) {
++			fd = openat(dirfd(dir), de->d_name,
++				    O_RDONLY | O_DIRECTORY);
+ 			break;
+ 		}
+ 	}
+ 
+ 	closedir(dir);
+ 
+-	return found;
++	return fd;
+ }
+ 
+ /* Detect which Intel driver, if any, is bound to the device */
+-static enum intel_driver_type detect_intel_driver(unsigned int drm_minor)
++static enum intel_driver_type detect_intel_driver(int card_fd)
+ {
+-	char path[256];
+ 	char link[256];
+ 	char *driver;
+ 	ssize_t len;
+ 
+ 	/* Read the driver symlink */
+-	snprintf(path, sizeof(path), "%s%u/device/driver",
+-		 get_sysfs_drm_path(drm_minor), drm_minor);
+-	len = readlink(path, link, sizeof(link) - 1);
++	len = readlinkat(card_fd, "device/driver", link, sizeof(link) - 1);
+ 	if (len == -1)
+ 		return INTEL_DRIVER_UNKNOWN;
+ 
+@@ -167,95 +163,71 @@ static enum intel_driver_type detect_intel_driver(unsigned int drm_minor)
+ 	return INTEL_DRIVER_UNKNOWN;
+ }
+ 
+-/* Count the number of GTs by checking which gt* directories exist */
+-static int get_num_gts(unsigned int drm_minor, enum intel_driver_type driver_type)
++/* Open the sysfs directory of a GT */
++static int open_gt_sysfs_dir(int card_fd, enum intel_driver_type driver_type,
++			     int gt)
+ {
+-	char path[256];
+-	struct stat st;
+-	int gt_count = 0;
+-
+-	/* Check for gt0, gt1, gt2, etc. up to a reasonable maximum */
+-	for (int i = 0; i < 8; i++) {
+-		if (driver_type == INTEL_DRIVER_XE)
+-			/* For Xe, all GTs are under tile0 */
+-			snprintf(path, sizeof(path), "%s%u/device/tile0/gt%d",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, i);
+-		else /* i915 */
+-			snprintf(path, sizeof(path), "%s%u/gt/gt%d",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, i);
+-
+-		if (stat(path, &st) == 0 && S_ISDIR(st.st_mode))
+-			gt_count++;
+-		else
+-			break;  /* Assume GTs are numbered sequentially */
+-	}
++	char path[64];
+ 
+-	return gt_count;
++	if (driver_type == INTEL_DRIVER_XE)
++		/* For Xe, all GTs are under tile0 */
++		snprintf(path, sizeof(path), "device/tile0/gt%d", gt);
++	else /* i915 */
++		snprintf(path, sizeof(path), "gt/gt%d", gt);
++
++	return openat(card_fd, path, O_RDONLY | O_DIRECTORY);
+ }
+ 
+-/* Read a single frequency value from sysfs */
+-static bool read_freq_value(const char *path, unsigned int *freq)
++/* Read a single frequency value from a file relative to the GT sysfs dir */
++static bool read_freq_value(int gt_fd, const char *name, unsigned int *freq)
+ {
+-	FILE *fp;
+ 	char buf[32];
+-	bool success = false;
++	ssize_t len;
++	int fd;
+ 
+-	fp = fopen(path, "r");
+-	if (fp) {
+-		if (fgets(buf, sizeof(buf), fp)) {
+-			*freq = atoi(buf);
+-			success = true;
+-		}
+-		fclose(fp);
+-	}
++	fd = openat(gt_fd, name, O_RDONLY);
++	if (fd < 0)
++		return false;
+ 
+-	return success;
++	len = read(fd, buf, sizeof(buf) - 1);
++	close(fd);
++	if (len <= 0)
++		return false;
++
++	buf[len] = '\0';
++	*freq = atoi(buf);
++
++	return true;
+ }
+ 
+ /* Intel-specific frequency reading for i915/Xe drivers */
+-static char *get_intel_frequencies(unsigned int drm_minor,
++static char *get_intel_frequencies(int card_fd,
+ 				   enum intel_driver_type driver_type)
+ {
+-	char freq_str[512] = "";
++	char freq_str[MAX_GTS * 64] = "";
+ 	char gt_info[64];
+-	int num_gts;
+ 	int gt;
+ 	bool first = true;
+ 
+-	/* Get GT count from sysfs */
+-	num_gts = get_num_gts(drm_minor, driver_type);
+-	if (num_gts == 0)
+-		return NULL;
+-
+-	/* Read frequencies for each GT */
+-	for (gt = 0; gt < num_gts; gt++) {
+-		char freq_path[256];
++	/* Read frequencies for each GT, assuming they are numbered sequentially */
++	for (gt = 0; gt < MAX_GTS; gt++) {
+ 		unsigned int cur_freq = 0, act_freq = 0;
+-		bool has_cur = false, has_act = false;
+-
+-		/* Read requested frequency */
+-		if (driver_type == INTEL_DRIVER_XE)
+-			snprintf(freq_path, sizeof(freq_path),
+-				 "%s%u/device/tile0/gt%d/freq0/cur_freq",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, gt);
+-		else /* i915 */
+-			snprintf(freq_path, sizeof(freq_path),
+-				 "%s%u/gt/gt%d/rps_cur_freq_mhz",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, gt);
+-
+-		has_cur = read_freq_value(freq_path, &cur_freq);
+-
+-		/* Read actual frequency */
+-		if (driver_type == INTEL_DRIVER_XE)
+-			snprintf(freq_path, sizeof(freq_path),
+-				 "%s%u/device/tile0/gt%d/freq0/act_freq",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, gt);
+-		else /* i915 */
+-			snprintf(freq_path, sizeof(freq_path),
+-				 "%s%u/gt/gt%d/rps_act_freq_mhz",
+-				 get_sysfs_drm_path(drm_minor), drm_minor, gt);
+-
+-		has_act = read_freq_value(freq_path, &act_freq);
++		bool has_cur, has_act;
++		int gt_fd;
++
++		gt_fd = open_gt_sysfs_dir(card_fd, driver_type, gt);
++		if (gt_fd < 0)
++			break;
++
++		if (driver_type == INTEL_DRIVER_XE) {
++			has_cur = read_freq_value(gt_fd, "freq0/cur_freq", &cur_freq);
++			has_act = read_freq_value(gt_fd, "freq0/act_freq", &act_freq);
++		} else { /* i915 */
++			has_cur = read_freq_value(gt_fd, "rps_cur_freq_mhz", &cur_freq);
++			has_act = read_freq_value(gt_fd, "rps_act_freq_mhz", &act_freq);
++		}
++
++		close(gt_fd);
+ 
+ 		/* Skip this GT if we couldn't read any frequency */
+ 		if (!has_cur && !has_act)
+@@ -281,17 +253,21 @@ static char *get_intel_frequencies(unsigned int drm_minor,
+ static char *get_frequencies(unsigned int drm_minor)
+ {
+ 	enum intel_driver_type intel_driver;
+-	unsigned int card_minor;
++	char *freq = NULL;
++	int card_fd;
+ 
+-	if (!get_card_minor(drm_minor, &card_minor))
++	card_fd = open_card_sysfs_dir(drm_minor);
++	if (card_fd < 0)
+ 		return NULL;
+ 
+ 	/* Check for Intel devices (i915/Xe) */
+-	intel_driver = detect_intel_driver(card_minor);
++	intel_driver = detect_intel_driver(card_fd);
+ 	if (intel_driver != INTEL_DRIVER_UNKNOWN)
+-		return get_intel_frequencies(card_minor, intel_driver);
++		freq = get_intel_frequencies(card_fd, intel_driver);
+ 
+-	return NULL;
++	close(card_fd);
++
++	return freq;
+ }
+ 
+ static int
+-- 
+2.55.0
+

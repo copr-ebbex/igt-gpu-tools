@@ -1,0 +1,49 @@
+From eebe2e36a5e3106d3a987c1b8fcf3cee3afdb50d Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:30 +0200
+Subject: [PATCH i-g-t 07/12] tools/gputop: Sort by busy cycles when engine
+ time is unavailable
+
+Clients within a DRM minor are sorted by aggregated engine time from
+the last sampling period so the busiest ones are listed first. Drivers
+such as xe only expose drm-cycles/drm-total-cycles and never report
+engine time, so for them every client compares equal and the list ends
+up sorted by client id only.
+
+Fall back to the aggregated busy cycles when neither client reports
+engine time.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index b0d9a96a6..3d9f87b8c 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -515,10 +515,17 @@ static int client_cmp(const void *_a, const void *_b, void *unused)
+ 
+ 	/*
+ 	 * Within buckets sort by last sampling period aggregated runtime, with
+-	 * client id as a tie-breaker.
++	 * client id as a tie-breaker. Drivers which only report cycles (for
++	 * example xe) have no engine time so fall back to busy cycles there.
+ 	 */
+-	val_a = a->agg_delta_engine_time;
+-	val_b = b->agg_delta_engine_time;
++	if (a->utilization_mask & IGT_DRM_CLIENT_UTILIZATION_ENGINE_TIME ||
++	    b->utilization_mask & IGT_DRM_CLIENT_UTILIZATION_ENGINE_TIME) {
++		val_a = a->agg_delta_engine_time;
++		val_b = b->agg_delta_engine_time;
++	} else {
++		val_a = a->agg_delta_cycles;
++		val_b = b->agg_delta_cycles;
++	}
+ 	if (val_a == val_b)
+ 		return __client_id_cmp(a, b);
+ 	else if (val_b > val_a)
+-- 
+2.55.0
+

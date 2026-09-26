@@ -1,0 +1,81 @@
+From b331e4e8833a68f761b505a2bda734fbe2437297 Mon Sep 17 00:00:00 2001
+From: Erik Berg <gitlab@slipsprogrammor.no>
+Date: Sun, 27 Sep 2026 00:19:32 +0200
+Subject: [PATCH i-g-t 12/12] tools/gputop: Find Xe GTs on all tiles
+
+Xe exposes GTs in sysfs as <device>/tileM/gtN where the GT id is global
+to the device and derived from the tile: the primary GT of a tile has
+id tile_id * max_gt_per_tile and its media GT the one after. On a
+multi-tile part the second tile's GTs therefore live under tile1, but
+the frequency code only ever looks in tile0 and so never finds them.
+Today that only affects PVC, which the driver still hides behind
+force_probe, but the sysfs layout is the documented one.
+
+Search the tile directories for each GT id instead. The driver supports
+at most two tiles, so probing four keeps a margin while bounding the
+cost at 32 failed openat() calls per header in the worst case.
+
+Assisted-by: Claude:claude-fable-5-1
+Signed-off-by: Erik Berg <gitlab@slipsprogrammor.no>
+---
+ tools/gputop.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/tools/gputop.c b/tools/gputop.c
+index c65d8b76d..4d9825315 100644
+--- a/tools/gputop.c
++++ b/tools/gputop.c
+@@ -45,8 +45,9 @@ enum intel_driver_type {
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+ 
+-/* Upper bound for probing GT sysfs directories */
++/* Upper bounds for probing GT and tile sysfs directories */
+ #define MAX_GTS 8
++#define MAX_TILES 4
+ 
+ static const char *bars[] = { " ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█" };
+ 
+@@ -163,19 +164,33 @@ static enum intel_driver_type detect_intel_driver(int card_fd)
+ 	return INTEL_DRIVER_UNKNOWN;
+ }
+ 
+-/* Open the sysfs directory of a GT */
++/*
++ * Open the sysfs directory of a GT.
++ *
++ * i915 keeps them under <card>/gt/gtN. Xe keeps them under the PCI device as
++ * tileM/gtN, where the GT id is global and computed per tile (tile id times
++ * the maximum GTs per tile, plus one for a media GT), so the tile has to be
++ * searched for.
++ */
+ static int open_gt_sysfs_dir(int card_fd, enum intel_driver_type driver_type,
+ 			     int gt)
+ {
+ 	char path[64];
++	int tile, fd;
+ 
+-	if (driver_type == INTEL_DRIVER_XE)
+-		/* For Xe, all GTs are under tile0 */
+-		snprintf(path, sizeof(path), "device/tile0/gt%d", gt);
+-	else /* i915 */
++	if (driver_type != INTEL_DRIVER_XE) {
+ 		snprintf(path, sizeof(path), "gt/gt%d", gt);
++		return openat(card_fd, path, O_RDONLY | O_DIRECTORY);
++	}
++
++	for (tile = 0; tile < MAX_TILES; tile++) {
++		snprintf(path, sizeof(path), "device/tile%d/gt%d", tile, gt);
++		fd = openat(card_fd, path, O_RDONLY | O_DIRECTORY);
++		if (fd >= 0)
++			return fd;
++	}
+ 
+-	return openat(card_fd, path, O_RDONLY | O_DIRECTORY);
++	return -1;
+ }
+ 
+ /* Read a single frequency value from a file relative to the GT sysfs dir */
+-- 
+2.55.0
+
